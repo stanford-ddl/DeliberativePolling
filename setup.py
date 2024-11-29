@@ -12,7 +12,7 @@ setuptools.setup(
     description="A package for analyzing survey data from Deliberative Polling experiments.",
     long_description=description,
     long_description_content_type="text/markdown",
-    url="https://github.com/WilloughbyWinograd/DeliberativePolling",
+    url="https://github.com/stanford-ddl/DeliberativePolling",
     license="MIT",
     python_requires=">=3.11",
     install_requires=[
