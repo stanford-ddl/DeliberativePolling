@@ -362,13 +362,18 @@ def ordinal_crosstab(sample, nominal_variable, ordinal_variable):
     [labels_ordinal.append(value) for value in labels if value not in labels_ordinal]
     labels_ordinal = labels_ordinal + ["DK/NA"]
 
+    # Get used labels for nominal variable
+    used_nominal_labels = sample.one.labels[nominal_variable].dropna().unique()
+    used_nominal_labels = list(set(used_nominal_labels) | set(sample.two.labels[nominal_variable].dropna().unique()))
+
+
     sample.one.crosstab = crosstab_create(
         type="Ordinal",
         data=sample.one.labels,
         index=ordinal_variable,
         columns=nominal_variable,
         weight=sample.one.weight,
-        labels_nominal=labels_nominal,
+        labels_nominal=used_nominal_labels, # Use only labels present in the data
         labels_ordinal=labels_ordinal,
     )
 
@@ -378,7 +383,7 @@ def ordinal_crosstab(sample, nominal_variable, ordinal_variable):
         index=ordinal_variable,
         columns=nominal_variable,
         weight=sample.two.weight,
-        labels_nominal=labels_nominal,
+        labels_nominal=used_nominal_labels,  # Use only labels present in the data
         labels_ordinal=labels_ordinal,
     )
 
@@ -679,6 +684,11 @@ def crosstab_create(
     )
 
     if type == "Nominal":
+
+        # Filter out unused labels
+        used_labels = data[index].dropna().unique()
+        labels_nominal = [label for label in labels_nominal if label in used_labels]
+        
         if len(absolute_frequencies) == 0:
             absolute_frequencies = (
                 pd.crosstab(
@@ -737,9 +747,16 @@ def crosstab_means(sample, nominal_variable, ordinal_variable):
     )
 
     for filter in sample.one.crosstab.columns:
-        mean1, mean2, mean_difference = t_test(
-            sample, filter, nominal_variable, ordinal_variable
-        )
+        # Check if any data exists for the current filter before proceeding
+        if (not filter == "All" and (
+            sample.one.labels[nominal_variable] == filter).sum() == 0) or \
+           (not filter == "All" and (sample.two.labels[nominal_variable] == filter).sum() == 0) :
+            # Skip this filter if no data exists for either sample one or two
+            mean1, mean2, mean_difference = pd.NA, pd.NA, pd.NA
+        else:
+            mean1, mean2, mean_difference = t_test(
+                sample, filter, nominal_variable, ordinal_variable
+            )
 
         crosstab_index = list(sample.one.crosstab.columns).index(filter)
 
