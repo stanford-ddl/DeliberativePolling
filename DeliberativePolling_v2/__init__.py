@@ -769,13 +769,16 @@ def crosstab_means(sample, nominal_variable, ordinal_variable):
         temp_two_crosstab.columns = pd.Index(crosstab_header_two) # Correctly update temporary crosstab
 
 
-    # Concatenate *temp* crosstabs to create the final crosstab
-    sample.crosstab = pd.concat([temp_one_crosstab, temp_two_crosstab, temp_two_crosstab - temp_one_crosstab], axis=1)
-
-    # Set correct multi-index columns for final crosstab
-    sample.crosstab.columns = pd.MultiIndex.from_product([[''], sample.crosstab.columns.get_level_values(0), ['', '', '']])
-
-
+    # Concatenate temp crosstabs – the key change is *how* this is done
+    sample.crosstab = pd.concat(
+        [
+            temp_one_crosstab,
+            temp_two_crosstab,
+            temp_two_crosstab - temp_one_crosstab
+        ],
+        axis=1,
+        keys=['', '', ''], # Use keys to create the multi-index directly
+    )
 
     return crosstab_concat(sample.means, sample.crosstab)
 
