@@ -4,7 +4,7 @@ with open("README.md", "r") as fh:
     description = fh.read()
 
 setuptools.setup(
-    name="DeliberativePolling",
+    name="DeliberativePolling-v2",
     version="1.4.2",
     author="The Deliberative Democracy Lab at Stanford University",
     author_email="deliberation@stanford.edu",
