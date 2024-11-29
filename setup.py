@@ -8,7 +8,7 @@ setuptools.setup(
     version="1.4.2",
     author="The Deliberative Democracy Lab at Stanford University",
     author_email="deliberation@stanford.edu",
-    packages=["DeliberativePolling"],
+    packages=["DeliberativePolling_v2"],
     description="A package for analyzing survey data from Deliberative Polling experiments.",
     long_description=description,
     long_description_content_type="text/markdown",
