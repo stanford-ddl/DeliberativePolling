@@ -8,11 +8,11 @@ setuptools.setup(
     version="1.4.2",
     author="The Deliberative Democracy Lab at Stanford University",
     author_email="deliberation@stanford.edu",
-    packages=["DeliberativePolling"],
+    packages=["DeliberativePolling_v2"],
     description="A package for analyzing survey data from Deliberative Polling experiments.",
     long_description=description,
     long_description_content_type="text/markdown",
-    url="https://github.com/stanford-ddl/DeliberativePolling",
+    url="https://github.com/stanford-ddl/DeliberativePolling_v2",
     license="MIT",
     python_requires=">=3.11",
     install_requires=[
