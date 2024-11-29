@@ -722,15 +722,25 @@ def crosstab_concat(crosstab1, crosstab2):
     if len(crosstab2.columns) == 0:
         return crosstab1
 
-    try:  # Try accessing level 2 if it exists
-        crosstab2_level2 = crosstab2.columns.get_level_values(2)
-    except IndexError:  # If it doesn't exist (only 2 levels)
-        crosstab2_level2 = [''] * len(crosstab2.columns)  # Create a dummy level
+    # Ensure both crosstabs have 3-level MultiIndex columns
+    if crosstab1.columns.nlevels < 3:
+        crosstab1.columns = pd.MultiIndex.from_product([crosstab1.columns, [''] ,['']])
+    if crosstab2.columns.nlevels < 3:
+        crosstab2.columns = pd.MultiIndex.from_product([crosstab2.columns, [''] ,['']])
 
-    # Now reindex with the correct number of levels
+
+    try:
+        crosstab2_level2 = crosstab2.columns.get_level_values(2)
+    except IndexError:
+        crosstab2_level2 = [''] * len(crosstab2.columns)
+
+    # Create unique labels for reindexing
+    crosstab1_level1_cols = crosstab1.columns.get_level_values(1)
+
+    # Reindex using unique level 1 column names
     crosstab2 = crosstab2.reindex(
         columns=pd.MultiIndex.from_product(
-            [crosstab2.columns.get_level_values(0), crosstab1.columns.get_level_values(1), crosstab2_level2]
+            [crosstab2.columns.get_level_values(0), crosstab1_level1_cols, crosstab2_level2]
         ),
         fill_value=pd.NA
     )
