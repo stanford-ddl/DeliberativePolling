@@ -734,52 +734,58 @@ def crosstab_concat(crosstab1, crosstab2):
 
 
 def crosstab_means(sample, nominal_variable, ordinal_variable):
-    sample.means = pd.DataFrame(
-        [[pd.NA] * len(sample.crosstab.columns)], columns=sample.crosstab.columns
-    )
+    # Get ALL nominal labels from metadata
+    all_nominal_labels = sorted(list(set(sample.metadata.variable_value_labels[nominal_variable].values())))
 
-    for filter in sample.one.crosstab.columns:
-        # Check if any data exists for the current filter before proceeding
-        if (not filter == "All" and (
-            sample.one.labels[nominal_variable] == filter).sum() == 0) or \
-           (not filter == "All" and (sample.two.labels[nominal_variable] == filter).sum() == 0) :
-            # Skip this filter if no data exists for either sample one or two
-            mean1, mean2, mean_difference = pd.NA, pd.NA, pd.NA
+    # Create temporary crosstabs with ALL labels to get the correct columns
+    temp_one_crosstab = crosstab_create('Ordinal', sample.one.labels, ordinal_variable, nominal_variable, sample.one.weight, all_nominal_labels, None)
+    temp_two_crosstab = crosstab_create('Ordinal', sample.two.labels, ordinal_variable, nominal_variable, sample.two.weight, all_nominal_labels, None)
+
+    # Initialize sample.means with the correct columns and size
+    sample.means = pd.DataFrame([[pd.NA] * len(temp_one_crosstab.columns) * 3], columns=pd.MultiIndex.from_product([[''], temp_one_crosstab.columns, ['', '','']]))
+
+
+    for filter_level1, filter in enumerate(temp_one_crosstab.columns):  # Iterate over correct columns
+        # Calculate means only if data exists for the filter in either sample
+        if (
+            (filter != "All" and (sample.one.labels[nominal_variable] == filter).sum() > 0) or
+            (filter != "All" and (sample.two.labels[nominal_variable] == filter).sum() > 0) or
+            filter == "All"
+        ):
+            mean1, mean2, mean_difference = t_test(sample, filter, nominal_variable, ordinal_variable)
         else:
-            mean1, mean2, mean_difference = t_test(
-                sample, filter, nominal_variable, ordinal_variable
-            )
+            mean1, mean2, mean_difference = pd.NA, pd.NA, pd.NA
 
-        crosstab_index = list(sample.one.crosstab.columns).index(filter)
+        # Assign means to the correct columns in sample.means
+        sample.means.iloc[0, filter_level1 * 3 + 0] = mean1
+        sample.means.iloc[0, filter_level1 * 3 + 1] = mean2
+        sample.means.iloc[0, filter_level1 * 3 + 2] = mean_difference
 
-        sample.means.iloc[
-            0, crosstab_index + 0 * len(sample.one.crosstab.columns)
-        ] = mean1
-        sample.means.iloc[
-            0, crosstab_index + 1 * len(sample.one.crosstab.columns)
-        ] = mean2
-        sample.means.iloc[
-            0, crosstab_index + 2 * len(sample.one.crosstab.columns)
-        ] = mean_difference
 
-        crosstab_header = sample.crosstab.columns.tolist()
-        crosstab_header[
-            crosstab_index + 0 * len(sample.one.crosstab.columns)
-        ] = add_sample_size(
-            filter,
-            sample.one.values
-            if filter == "All"
-            else sample.one.values[sample.one.labels[nominal_variable] == filter],
-        )
-        crosstab_header[
-            crosstab_index + 1 * len(sample.one.crosstab.columns)
-        ] = add_sample_size(
-            filter,
-            sample.two.values
-            if filter == "All"
-            else sample.two.values[sample.two.labels[nominal_variable] == filter],
-        )
-        sample.crosstab.columns = sample.means.columns = pd.Index(crosstab_header)
+        # Update crosstab headers with sample sizes
+        crosstab_header = list(sample.means.columns.get_level_values(1))
+        crosstab_header[filter_level1] = add_sample_size(filter, sample.one.values if filter == "All" else sample.one.values[sample.one.labels[nominal_variable] == filter])
+
+
+        # Update crosstab and sample.means columns
+        temp_one_crosstab.columns = pd.Index(crosstab_header)
+
+        crosstab_header_2 = crosstab_header.copy()
+        crosstab_header_2[filter_level1] = add_sample_size(filter, sample.two.values if filter == "All" else sample.two.values[sample.two.labels[nominal_variable] == filter])
+        temp_two_crosstab.columns = pd.Index(crosstab_header_2)
+
+        sample.means.columns = pd.MultiIndex.from_product([[''], crosstab_header_2, ['', '','']])
+
+
+    sample.crosstab = pd.concat(
+        [
+            temp_one_crosstab,
+            temp_two_crosstab,
+            temp_two_crosstab - temp_one_crosstab,  # Difference between the two
+        ],
+        axis=1,
+    )
+    sample.crosstab.columns = pd.MultiIndex.from_product([[''], sample.crosstab.columns.get_level_values(1), ['', '','']])
 
     return crosstab_concat(sample.means, sample.crosstab)
 
