@@ -739,13 +739,15 @@ def crosstab_concat(crosstab1, crosstab2):
 
     crosstab1_level1_cols = crosstab1.columns.get_level_values(1)
 
-    # Reindex crosstab2
-    crosstab2 = crosstab2.reindex(
-        columns=pd.MultiIndex.from_product(
-            [crosstab2_level0, crosstab1_level1_cols, crosstab2_level2]  # Use original level 0 values
-        ),
-        fill_value=pd.NA
+    new_columns = pd.MultiIndex.from_product(
+        [crosstab2_level0, crosstab1_level1_cols, crosstab2_level2]
     )
+    
+    # Ensure unique columns
+    if new_columns.duplicated().any():
+        new_columns = new_columns.drop_duplicates()
+    
+    crosstab2 = crosstab2.reindex(columns=new_columns, fill_value=pd.NA)
 
     crosstabs = pd.concat([crosstab1, crosstab2])
     return crosstabs
