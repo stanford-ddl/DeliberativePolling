@@ -725,11 +725,13 @@ def crosstab_concat(crosstab1, crosstab2):
     # Ensure both crosstabs have 3-level MultiIndex columns
     if crosstab1.columns.nlevels < 3:
         crosstab1.columns = pd.MultiIndex.from_product([crosstab1.columns, [''] ,['']])
+
     if crosstab2.columns.nlevels < 3:
-        crosstab2 = crosstab2.droplevel(level=0, axis=1) # drop level 0 of crosstab2
-        crosstab2.columns = pd.MultiIndex.from_product([crosstab2.columns, [''] ,['']])
+        crosstab2 = crosstab2.droplevel(level=0, axis=1)
+        crosstab2.columns = pd.MultiIndex.from_product([crosstab2.columns, [''], ['']])
 
-
+    # Get level values *before* any modifications to crosstab2!
+    crosstab2_level0 = crosstab2.columns.get_level_values(0)  # Get level 0 values
     try:
         crosstab2_level2 = crosstab2.columns.get_level_values(2)
     except IndexError:
@@ -737,9 +739,10 @@ def crosstab_concat(crosstab1, crosstab2):
 
     crosstab1_level1_cols = crosstab1.columns.get_level_values(1)
 
+    # Reindex crosstab2
     crosstab2 = crosstab2.reindex(
         columns=pd.MultiIndex.from_product(
-            [crosstab2.columns.get_level_values(0), crosstab1_level1_cols, crosstab2_level2]
+            [crosstab2_level0, crosstab1_level1_cols, crosstab2_level2]  # Use original level 0 values
         ),
         fill_value=pd.NA
     )
