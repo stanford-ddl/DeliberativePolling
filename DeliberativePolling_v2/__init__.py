@@ -719,16 +719,19 @@ def crosstab_create(
 
 
 def crosstab_concat(crosstab1, crosstab2):
-    if len(crosstab1.columns) != len(crosstab2.columns):
-        crosstab2 = pd.DataFrame(columns=crosstab1.columns)
+    if len(crosstab2.columns) == 0:  # Handle empty crosstab2
+        return crosstab1
 
-    crosstab1.columns = crosstab2.columns = pd.MultiIndex.from_product(
-        [["Level1"], crosstab1.columns]
-    )
+    # Extract level 1 column names
+    crosstab1_level1_cols = crosstab1.columns.get_level_values(1)
+    crosstab2_level1_cols = crosstab2.columns.get_level_values(1)
+
+
+    # Check for mismatched columns and adjust if necessary
+    if not all(crosstab1_level1_cols == crosstab2_level1_cols):
+        crosstab2 = crosstab2.reindex(columns=pd.MultiIndex.from_product([crosstab2.columns.get_level_values(0), crosstab1_level1_cols, crosstab2.columns.get_level_values(2)]), fill_value=pd.NA) # realign
 
     crosstabs = pd.concat([crosstab1, crosstab2])
-
-    crosstabs.columns = crosstabs.columns.get_level_values(1)
 
     return crosstabs
 
