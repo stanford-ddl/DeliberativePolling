@@ -362,10 +362,8 @@ def ordinal_crosstab(sample, nominal_variable, ordinal_variable):
     [labels_ordinal.append(value) for value in labels if value not in labels_ordinal]
     labels_ordinal = labels_ordinal + ["DK/NA"]
 
-    # Get used labels for nominal variable
-    used_nominal_labels = sample.one.labels[nominal_variable].dropna().unique()
-    used_nominal_labels = list(set(used_nominal_labels) | set(sample.two.labels[nominal_variable].dropna().unique()))
-
+    #  Get ALL nominal labels from metadata (the corrected approach)
+    all_nominal_labels = sorted(list(set(sample.metadata.variable_value_labels[nominal_variable].values()))) # EDIT: Using all labels
 
     sample.one.crosstab = crosstab_create(
         type="Ordinal",
@@ -373,7 +371,7 @@ def ordinal_crosstab(sample, nominal_variable, ordinal_variable):
         index=ordinal_variable,
         columns=nominal_variable,
         weight=sample.one.weight,
-        labels_nominal=used_nominal_labels, # Use only labels present in the data
+        labels_nominal=all_nominal_labels, # EDIT: Using all labels
         labels_ordinal=labels_ordinal,
     )
 
@@ -383,7 +381,7 @@ def ordinal_crosstab(sample, nominal_variable, ordinal_variable):
         index=ordinal_variable,
         columns=nominal_variable,
         weight=sample.two.weight,
-        labels_nominal=used_nominal_labels,  # Use only labels present in the data
+        labels_nominal=all_nominal_labels, # EDIT: Using all labels
         labels_ordinal=labels_ordinal,
     )
 
@@ -684,11 +682,6 @@ def crosstab_create(
     )
 
     if type == "Nominal":
-
-        # Filter out unused labels
-        used_labels = data[index].dropna().unique()
-        labels_nominal = [label for label in labels_nominal if label in used_labels]
-        
         if len(absolute_frequencies) == 0:
             absolute_frequencies = (
                 pd.crosstab(
@@ -703,6 +696,9 @@ def crosstab_create(
                 .reindex(labels_nominal)
                 .fillna(0)
             )
+    
+    # Ensure ALL labels are present, filling missing data with 0
+    absolute_frequencies = absolute_frequencies.reindex(labels_nominal, fill_value=0)
 
         combined_frequencies = (
             (absolute_frequencies / absolute_frequencies.sum().sum() * 100)
@@ -714,12 +710,8 @@ def crosstab_create(
             + absolute_frequencies.round().astype(int).astype(str)
         )
 
-        return (
-            combined_frequencies.iloc[:, ::-1]
-            .fillna(0)
-            .reindex(labels_nominal)
-            .replace(pd.NA, "(0.0%) 0")
-        )
+        return combined_frequencies.iloc[:, ::-1].fillna("(0.0%) 0")
+
     else:
         return 100 * absolute_frequencies.iloc[:, ::-1].fillna(0).reindex(
             labels_ordinal
@@ -1015,6 +1007,15 @@ def dist_comparison(P):
 
 
 def plurality(percentages):
+    # Handle case where all values are floats/NaNs
+    if percentages.apply(lambda x: isinstance(x, float)).any():
+        return np.nan, np.nan, "Insufficient data"  # Return appropriate defaults
+
+
+    if percentages.apply(lambda x: "%)" in x).any():
+        percentages = percentages.apply(lambda x: x.split("%")[0][1:] + "%")
+
+    
     if percentages.apply(lambda x: "%)" in x).any():
         percentages = percentages.apply(lambda x: x.split("%")[0][1:] + "%")
 
