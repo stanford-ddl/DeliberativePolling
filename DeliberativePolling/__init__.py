@@ -732,11 +732,9 @@ def crosstab_concat(crosstab1, crosstab2):
 
 
 def crosstab_means(sample, nominal_variable, ordinal_variable):
-    # Get all unique categories across both samples
-    all_categories = sample.one.crosstab.columns.union(sample.two.crosstab.columns)
-
-    # Initialize sample.means with enough columns for all categories
-    sample.means = pd.DataFrame([[pd.NA] * len(all_categories)], columns=all_categories)
+    sample.means = pd.DataFrame(
+        [[pd.NA] * len(sample.crosstab.columns)], columns=sample.crosstab.columns
+    )
 
     for filter in sample.one.crosstab.columns:
         mean1, mean2, mean_difference = t_test(
