@@ -697,8 +697,8 @@ def crosstab_create(
                 .fillna(0)
             )
     
-    # Ensure ALL labels are present, filling missing data with 0
-    absolute_frequencies = absolute_frequencies.reindex(labels_nominal, fill_value=0)
+        # Ensure ALL labels are present, filling missing data with 0
+        absolute_frequencies = absolute_frequencies.reindex(labels_nominal, fill_value=0)
 
         combined_frequencies = (
             (absolute_frequencies / absolute_frequencies.sum().sum() * 100)
