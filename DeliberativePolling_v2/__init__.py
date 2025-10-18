@@ -743,33 +743,32 @@ def crosstab_means(sample, nominal_variable, ordinal_variable):
 
         crosstab_index = list(sample.one.crosstab.columns).index(filter)
 
-        sample.means.iloc[
-            0, crosstab_index + 0 * len(sample.one.crosstab.columns)
-        ] = mean1
-        sample.means.iloc[
-            0, crosstab_index + 1 * len(sample.one.crosstab.columns)
-        ] = mean2
-        sample.means.iloc[
-            0, crosstab_index + 2 * len(sample.one.crosstab.columns)
-        ] = mean_difference
+        # Fix: Check if index is within bounds before setting values
+        if crosstab_index + 0 * len(sample.one.crosstab.columns) < len(sample.means.columns):
+            sample.means.iloc[0, crosstab_index + 0 * len(sample.one.crosstab.columns)] = mean1
+        if crosstab_index + 1 * len(sample.one.crosstab.columns) < len(sample.means.columns):
+            sample.means.iloc[0, crosstab_index + 1 * len(sample.one.crosstab.columns)] = mean2
+        if crosstab_index + 2 * len(sample.one.crosstab.columns) < len(sample.means.columns):
+            sample.means.iloc[0, crosstab_index + 2 * len(sample.one.crosstab.columns)] = mean_difference
 
+
+        # Fix: Ensure correct header assignment with bounds check
         crosstab_header = sample.crosstab.columns.tolist()
-        crosstab_header[
-            crosstab_index + 0 * len(sample.one.crosstab.columns)
-        ] = add_sample_size(
-            filter,
-            sample.one.values
-            if filter == "All"
-            else sample.one.values[sample.one.labels[nominal_variable] == filter],
-        )
-        crosstab_header[
-            crosstab_index + 1 * len(sample.one.crosstab.columns)
-        ] = add_sample_size(
-            filter,
-            sample.two.values
-            if filter == "All"
-            else sample.two.values[sample.two.labels[nominal_variable] == filter],
-        )
+        if crosstab_index + 0 * len(sample.one.crosstab.columns) < len(crosstab_header):
+            crosstab_header[crosstab_index + 0 * len(sample.one.crosstab.columns)] = add_sample_size(
+                filter,
+                sample.one.values
+                if filter == "All"
+                else sample.one.values[sample.one.labels[nominal_variable] == filter],
+            )
+        if crosstab_index + 1 * len(sample.one.crosstab.columns) < len(crosstab_header):
+            crosstab_header[crosstab_index + 1 * len(sample.one.crosstab.columns)] = add_sample_size(
+                filter,
+                sample.two.values
+                if filter == "All"
+                else sample.two.values[sample.two.labels[nominal_variable] == filter],
+            )
+
         sample.crosstab.columns = sample.means.columns = pd.Index(crosstab_header)
 
     return crosstab_concat(sample.means, sample.crosstab)
