@@ -1,9 +1,0 @@
-pandas
-numpy
-openpyxl
-pyreadstat
-statsmodels
-scipy
-docx
-tqdm
-python-docx
