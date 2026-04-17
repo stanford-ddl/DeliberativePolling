@@ -2,7 +2,7 @@
 
 **Statistical analysis toolkit for Deliberative Polling experiments**
 
-[![Python Version](https://img.shields.io/badge/python-3.7+-blue.svg)](https://www.python.org/downloads/)
+[![Python Version](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 
 ## What is this?
 
@@ -19,7 +19,7 @@ Developed by the [Stanford Deliberative Democracy Lab](https://ddl.stanford.edu/
 
 ```bash
 # Install
-pip install DeliberativePolling
+pip install git+https://github.com/stanford-ddl/DeliberativePolling.git
 
 # Run analysis
 python3
@@ -42,19 +42,6 @@ Done! Check the `Outputs/` folder for results.
 
 ---
 
-## Who Should Use This?
-
-- **Research teams** running Deliberative Polling experiments
-- **Data analysts** working with longitudinal survey data
-- **Social scientists** comparing treatment effects over time
-
-While designed for Deliberative Polling, this package works with any experimental survey data that has:
-- Treatment/control groups
-- Multiple wave measurements
-- Survey responses in `.sav` format (Jamovi, SPSS Statistics, or compatible software)
-
----
-
 ## How It Works
 
 The package reads SPSS metadata (variable measures, value labels, column labels) to:
@@ -71,13 +58,15 @@ The package reads SPSS metadata (variable measures, value labels, column labels)
 ## Installation
 
 ### Requirements
-- Python 3.7+
+- Python 3.11+
 - macOS or Linux recommended (Windows may require additional setup for pyreadstat)
 
-### Install from PyPI
+### Install from GitHub
+
+The PyPI package is outdated and orphaned. Install directly from this GitHub repository instead.
 
 ```bash
-pip install DeliberativePolling
+pip install git+https://github.com/stanford-ddl/DeliberativePolling.git
 ```
 
 ### Install for Development
@@ -135,6 +124,10 @@ Outputs/
 ---
 
 ## Recent Updates
+
+### v1.4.3 (Apr 2026) - Packaging Cleanup
+
+Modernized packaging with `pyproject.toml`, bumped the release version, and simplified dependency metadata.
 
 ### v1.4.2 (Nov 2024) - Crosstab NaN Handling Fix
 
@@ -279,7 +272,7 @@ outputs("your_file.sav", fast=True)
 | `ValueError: "ID" variable not found` | Your `.sav` file must have variables named exactly `ID`, `Group`, and `Time` (case-sensitive) |
 | `ValueError: Value labels for [...] not found` | All values in nominal and ordinal variables must have labels. The error tells you which values are missing labels. |
 | `Error creating folders/files` | Check that nominal variable labels don't contain `/` slashes or other special characters that can't be used in file names |
-| `IndexError` or inconsistent tables | This was fixed in v1.4.2. Update the package: `pip install --upgrade DeliberativePolling` |
+| `IndexError` or inconsistent tables | This was fixed in v1.4.2. Reinstall from GitHub to get the latest version: `pip install --upgrade git+https://github.com/stanford-ddl/DeliberativePolling.git` |
 | Package runs very slowly | Use `fast=True` to skip Word document generation, which significantly speeds up execution |
 | Installation issues on Windows | The `pyreadstat` dependency may require additional compilation steps on Windows. See [pyreadstat Windows guide](https://github.com/Roche/pyreadstat/blob/master/windows_compilation.md) |
 

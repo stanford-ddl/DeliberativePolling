@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "DeliberativePolling"
+version = "1.4.3"
+description = "A package for analyzing survey data from Deliberative Polling experiments."
+readme = { file = "README.md", content-type = "text/markdown" }
+authors = [
+  { name = "The Deliberative Democracy Lab at Stanford University", email = "deliberation@stanford.edu" },
+]
+requires-python = ">=3.11"
+dependencies = [
+  "pandas",
+  "numpy",
+  "openpyxl",
+  "pyreadstat",
+  "statsmodels",
+  "scipy",
+  "tqdm",
+  "python-docx",
+]
+
+[tool.setuptools]
+packages = ["DeliberativePolling"]
